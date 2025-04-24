@@ -24,7 +24,7 @@ public class Pessoa {
 
     private String dataNascimento;
 
-    @ManyToMany
+    @OneToMany
     private List<Endereco> enderecos;
 
     private Long idEnderecoPrincipal;

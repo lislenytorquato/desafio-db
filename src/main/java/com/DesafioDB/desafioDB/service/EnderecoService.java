@@ -2,6 +2,7 @@ package com.DesafioDB.desafioDB.service;
 
 import com.DesafioDB.desafioDB.dto.EnderecoDto;
 import com.DesafioDB.desafioDB.dto.EnderecoRecebidoDto;
+import com.DesafioDB.desafioDB.exceptions.EnderecoNaoEncontradoException;
 import com.DesafioDB.desafioDB.mapper.EnderecoMapper;
 import com.DesafioDB.desafioDB.model.Endereco;
 import com.DesafioDB.desafioDB.repository.EnderecoRepository;
@@ -14,16 +15,13 @@ import java.util.Optional;
 @Service
 public class EnderecoService {
 
-
-    private EnderecoMapper enderecoMapper;
-
     @Autowired
     private EnderecoRepository enderecoRepository;
 
-    public EnderecoDto createEndereco(EnderecoRecebidoDto enderecoRecebidoDto) {
-
+    public EnderecoDto criarEndereco(EnderecoRecebidoDto enderecoRecebidoDto) {
 
         Endereco endereco = new Endereco();
+
         endereco.setRua(enderecoRecebidoDto.getRua());
         endereco.setNumero(enderecoRecebidoDto.getNumero());
         endereco.setBairro(enderecoRecebidoDto.getBairro());
@@ -33,45 +31,44 @@ public class EnderecoService {
 
         Endereco enderecoSalvo = enderecoRepository.save(endereco);
 
-        return EnderecoMapper.mapEnderecoParaEnderecoDto(enderecoSalvo);
+        EnderecoDto enderecoDto = EnderecoMapper.mapEnderecoParaEnderecoDto(enderecoSalvo);
+        return enderecoDto;
     }
 
-    public List<EnderecoDto> getEndereco(){
+    public List<EnderecoDto> listarEndereco(){
 
         List<Endereco> listaDeEndereco = enderecoRepository.findAll();
 
         return EnderecoMapper.mapListaDeEnderecoParaListaDeEnderecoDto(listaDeEndereco);
     }
 
-    public List<EnderecoDto> updateEndereco(Long id, EnderecoRecebidoDto enderecoRecebidoDto){
+    public List<EnderecoDto> atualizarEndereco( EnderecoRecebidoDto enderecoRecebidoDto) throws EnderecoNaoEncontradoException {
 
-        EnderecoDto enderecoDto = this.createEndereco(enderecoRecebidoDto);
+        this.criarEndereco(enderecoRecebidoDto);
 
-        this.deleteEndereco(id);
-
-        return this.getEndereco();
+        return this.listarEndereco();
 
     }
 
-    public void deleteEndereco(Long id){
+    public void deletarTodosEnderecos() {
 
-        Optional<Endereco> enderecoById = enderecoRepository.findById(id);
-
-        if (enderecoById.isEmpty()){
-            throw new NullPointerException("endereco nao encontrado");
-        }
-        enderecoRepository.delete(enderecoById.get());
+        enderecoRepository.deleteAll();
     }
 
-    public EnderecoDto enderecoPrincipal (Long idEnderecoPrincipal){
+    public EnderecoDto enderecoPrincipal (Long idEnderecoPrincipal) throws EnderecoNaoEncontradoException {
 
         Optional<Endereco> enderecoPrincipal = enderecoRepository.findById(idEnderecoPrincipal);
 
-        if (enderecoPrincipal.isEmpty()){
-            throw new NullPointerException("endereco nao encontrado");
+        lancarExcecaoEnderecoNaoEncontrado(enderecoPrincipal);
+
+        EnderecoDto enderecoPrincipalDto = EnderecoMapper.mapEnderecoParaEnderecoDto(enderecoPrincipal.get());
+
+        return enderecoPrincipalDto;
+
+    }
+    private void lancarExcecaoEnderecoNaoEncontrado(Optional<Endereco> enderecoEscolhido) throws EnderecoNaoEncontradoException {
+        if (enderecoEscolhido.isEmpty()){
+            throw new EnderecoNaoEncontradoException();
         }
-
-        return EnderecoMapper.mapEnderecoParaEnderecoDto(enderecoPrincipal.get());
-
     }
 }
