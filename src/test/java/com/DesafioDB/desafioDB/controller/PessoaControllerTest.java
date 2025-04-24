@@ -40,7 +40,7 @@ public class PessoaControllerTest {
 
     @DisplayName("1-Deveria criar pessoa e retornar status created")
     @Test
-    public void deveriaCriarPessoaERetornarStatusCreated() throws CpfFaltandoException, NomeFaltandoException, CpfIgualException {
+    public void deveriaCriarPessoaERetornarStatusCreated() throws CpfFaltandoException, NomeFaltandoException, CpfIgualException, EnderecoNaoEncontradoException {
         PessoaRecebidaDto pessoaRecebidaDto1 = criarPessoaRecebidaDto1();
         PessoaDto pessoaDto1 = criarPessoaDto1();
         when(pessoaService.criarPessoa(pessoaRecebidaDto1)).thenReturn(pessoaDto1);
@@ -97,12 +97,11 @@ public class PessoaControllerTest {
     public void deveriaRetornarEnderecoPrincipalEStatusOk() throws PessoaNaoEncontradaException, EnderecoNaoEncontradoException {
 
         Long idPessoa = Long.parseLong(ID_1);
-        Long idEnderecoPrincipal = Long.parseLong(ID_ENDERECO_PRINCIPAL_1);
         EnderecoDto enderecoDto1 = criarEnderecoDto1();
 
-        when(pessoaService.retornarEnderecoPrincipal(idPessoa,idEnderecoPrincipal)).thenReturn(enderecoDto1);
+        when(pessoaService.retornarEnderecoPrincipal(idPessoa)).thenReturn(enderecoDto1);
 
-        ResponseEntity<EnderecoDto> enderecoPrincipal = pessoaController.retornarEnderecoPrincipal(idPessoa, idEnderecoPrincipal);
+        ResponseEntity<EnderecoDto> enderecoPrincipal = pessoaController.retornarEnderecoPrincipal(idPessoa);
 
         assertEquals(enderecoPrincipal, new ResponseEntity<>(enderecoDto1, HttpStatus.OK));
         assertEquals(enderecoPrincipal.getStatusCode(), HttpStatus.OK);

@@ -30,6 +30,7 @@ public class PessoaParaTestes {
         pessoa1.setDataNascimento(DATA_NASCIMENTO_1);
 
         pessoa1.setEnderecos(List.of(criarEndereco1()));
+        pessoa1.setIdEnderecoPrincipal(Long.valueOf(ID_ENDERECO_PRINCIPAL_1));
         return pessoa1;
     }
     public final static PessoaRecebidaDto criarPessoaRecebidaDtoSemNome(){

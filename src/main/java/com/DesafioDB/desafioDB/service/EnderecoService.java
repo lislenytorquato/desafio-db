@@ -66,6 +66,15 @@ public class EnderecoService {
         return enderecoPrincipalDto;
 
     }
+    public Boolean existeEnderecoPrincipal (Long idEnderecoPrincipal) throws EnderecoNaoEncontradoException {
+
+        Optional<Endereco> enderecoPrincipal = enderecoRepository.findById(idEnderecoPrincipal);
+
+        lancarExcecaoEnderecoNaoEncontrado(enderecoPrincipal);
+
+        return Boolean.TRUE;
+
+    }
     private void lancarExcecaoEnderecoNaoEncontrado(Optional<Endereco> enderecoEscolhido) throws EnderecoNaoEncontradoException {
         if (enderecoEscolhido.isEmpty()){
             throw new EnderecoNaoEncontradoException();

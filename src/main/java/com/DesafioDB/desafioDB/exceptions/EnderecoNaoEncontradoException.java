@@ -4,7 +4,7 @@ public class EnderecoNaoEncontradoException extends Exception{
 
     @Override
     public String getMessage(){
-        return "Endereco nao encontrada";
+        return "Endereco nao encontrado";
     }
 
 }
