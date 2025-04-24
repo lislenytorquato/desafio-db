@@ -4,8 +4,10 @@ import com.DesafioDB.desafioDB.dto.EnderecoDto;
 import com.DesafioDB.desafioDB.dto.PessoaDto;
 import com.DesafioDB.desafioDB.dto.PessoaRecebidaDto;
 import com.DesafioDB.desafioDB.exceptions.*;
+import com.DesafioDB.desafioDB.model.Pessoa;
 import com.DesafioDB.desafioDB.service.PessoaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,5 +59,10 @@ public class PessoaController {
     public ResponseEntity<Integer> retornarIdadePessoa(@PathVariable Long id) throws PessoaNaoEncontradaException {
         Integer idade = pessoaService.mostrarIdade(id);
         return new ResponseEntity<>(idade,HttpStatus.OK);
+    }
+    @GetMapping("{page}/{size}")
+    public ResponseEntity<Page<Pessoa>> retornarPessoaPaginada(@PathVariable int page, @PathVariable int size){
+        Page<Pessoa> pessoasPaginadas = pessoaService.retornarPessoasPaginadas(page, size);
+        return new ResponseEntity<>(pessoasPaginadas,HttpStatus.OK);
     }
 }

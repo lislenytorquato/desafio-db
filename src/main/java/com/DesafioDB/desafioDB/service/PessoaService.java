@@ -11,6 +11,9 @@ import com.DesafioDB.desafioDB.model.Endereco;
 import com.DesafioDB.desafioDB.model.Pessoa;
 import com.DesafioDB.desafioDB.repository.PessoaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -56,6 +59,11 @@ public class PessoaService {
         List<Pessoa> pessoas = pessoaRepository.findAll();
         return PessoaMapper.mapListaDePessoaParaListaDePessoaDto(pessoas);
 
+    }
+    public Page<Pessoa> retornarPessoasPaginadas(int page, int size){
+        Pageable pageablePessoa = PageRequest.of(page, size);
+        Page<Pessoa> pessoaPage = pessoaRepository.findAll(pageablePessoa);
+        return pessoaPage;
     }
     public PessoaDto atualizarPessoa(Long idPessoa, PessoaDto pessoaRecebida, Long idEnderecoASeratualizado) throws PessoaNaoEncontradaException, CpfFaltandoException, NomeFaltandoException, EnderecoNaoEncontradoException {
         pessoaRecebida.setId(idPessoa);

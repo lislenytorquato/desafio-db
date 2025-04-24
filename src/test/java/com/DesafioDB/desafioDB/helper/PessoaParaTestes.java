@@ -6,7 +6,8 @@ import com.DesafioDB.desafioDB.model.Pessoa;
 
 import java.util.List;
 
-import static com.DesafioDB.desafioDB.helper.EnderecoParaTestes.*;
+import static com.DesafioDB.desafioDB.helper.EnderecoParaTestes.criarEndereco1;
+import static com.DesafioDB.desafioDB.helper.EnderecoParaTestes.criarEndereco2;
 
 public class PessoaParaTestes {
     public final static String ID_1 = "1";
