@@ -4,6 +4,7 @@ import com.DesafioDB.desafioDB.dto.EnderecoDto;
 import com.DesafioDB.desafioDB.dto.PessoaDto;
 import com.DesafioDB.desafioDB.dto.PessoaRecebidaDto;
 import com.DesafioDB.desafioDB.exceptions.*;
+import com.DesafioDB.desafioDB.model.Pessoa;
 import com.DesafioDB.desafioDB.service.PessoaService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -23,6 +28,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PessoaControllerTest {
+
+    private final static int PAGE = 0;
+    private final static int SIZE = 1;
 
     @InjectMocks
     PessoaController pessoaController;
@@ -112,5 +120,16 @@ public class PessoaControllerTest {
         assertEquals(idadePessoa, new ResponseEntity<>(idade, HttpStatus.OK));
         assertEquals(idadePessoa.getStatusCode(), HttpStatus.OK);
 
+    }
+    @DisplayName("7-Deveria retornar pessoas paginadas")
+    @Test
+    public void deveriaRetornarPessoasPaginadas(){
+        List<Pessoa> listaPessoas = List.of(criarPessoa1());
+        Page<Pessoa> pessoaPage = new PageImpl<>(listaPessoas);
+        when(pessoaService.retornarPessoasPaginadas(PAGE,SIZE)).thenReturn(pessoaPage);
+        ResponseEntity<Page<Pessoa>> pessoaPaginada = pessoaController.retornarPessoaPaginada(PAGE, SIZE);
+
+        assertEquals(pessoaPaginada, new ResponseEntity<>(pessoaPage,HttpStatus.OK));
+        assertEquals(pessoaPaginada.getStatusCode(), HttpStatus.OK);
     }
 }
