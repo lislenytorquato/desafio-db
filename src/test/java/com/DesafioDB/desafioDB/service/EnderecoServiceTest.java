@@ -140,7 +140,21 @@ public class EnderecoServiceTest {
         doReturn(Optional.empty()).when(enderecoRepository).findById(idEnderecoPrincipal);
         EnderecoNaoEncontradoException enderecoNaoEncontradoException = assertThrows(EnderecoNaoEncontradoException.class, () -> enderecoService.enderecoPrincipal(idEnderecoPrincipal));
 
-        assertEquals(enderecoNaoEncontradoException.getMessage(), "Endereco nao encontrada");
+        assertEquals(enderecoNaoEncontradoException.getMessage(), "Endereco nao encontrado");
 
     }
+    @DisplayName("7-Deveria retornar true se existe endereco com o id dado")
+    @Test
+    public void deveriaRetornarTrueComIdEndereco() throws EnderecoNaoEncontradoException {
+
+        Long idEnderecoPrincipal = Long.parseLong(ID_ENDERECO_PRINCIPAL_1);
+
+        doReturn(Optional.of(criarEndereco1())).when(enderecoRepository).findById(idEnderecoPrincipal);
+        Boolean existeEnderecoPrincipal = enderecoService.existeEnderecoPrincipal(idEnderecoPrincipal);
+
+
+        assertEquals(existeEnderecoPrincipal.booleanValue(),Boolean.TRUE);
+
+    }
+
 }

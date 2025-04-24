@@ -27,7 +27,7 @@ public class PessoaService {
     @Autowired
     private EnderecoService enderecoService;
 
-    public PessoaDto criarPessoa(PessoaRecebidaDto pessoaRecebidaDto) throws NomeFaltandoException, CpfFaltandoException, CpfIgualException {
+    public PessoaDto criarPessoa(PessoaRecebidaDto pessoaRecebidaDto) throws NomeFaltandoException, CpfFaltandoException, CpfIgualException, EnderecoNaoEncontradoException {
 
         Pessoa pessoa = new Pessoa();
 
@@ -46,6 +46,7 @@ public class PessoaService {
         });
         pessoa.setEnderecos(EnderecoMapper.mapListaEnderecoDtoParaListaEndereco(enderecosCriados));
 
+        enderecoService.existeEnderecoPrincipal(pessoaRecebidaDto.getIdEnderecoPrincipal());
         pessoa.setIdEnderecoPrincipal(pessoaRecebidaDto.getIdEnderecoPrincipal());
 
         Pessoa pessoaSalva = pessoaRepository.save(pessoa);
@@ -99,12 +100,14 @@ public class PessoaService {
         enderecoService.deletarTodosEnderecos();
     }
 
-    public EnderecoDto retornarEnderecoPrincipal(Long idPessoa, Long idEnderecoPrincipal) throws PessoaNaoEncontradaException, EnderecoNaoEncontradoException {
+    public EnderecoDto retornarEnderecoPrincipal(Long idPessoa) throws PessoaNaoEncontradaException, EnderecoNaoEncontradoException {
         Optional<Pessoa> pessoa = pessoaRepository.findById(idPessoa);
 
         lancarExcecaoPessoaNaoEncontrada(pessoa);
 
-        return enderecoService.enderecoPrincipal(idEnderecoPrincipal);
+        EnderecoDto enderecoPrincipalDto = enderecoService.enderecoPrincipal(pessoa.get().getIdEnderecoPrincipal());
+
+        return enderecoPrincipalDto;
     }
     public Integer mostrarIdade(Long id) throws PessoaNaoEncontradaException {
 

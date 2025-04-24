@@ -16,6 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +42,7 @@ public class PessoaServiceTest {
 
     @DisplayName("1-Deveria criar pessoa")
     @Test
-    public void deveriaCriarPessoa() throws CpfFaltandoException, CpfIgualException, NomeFaltandoException {
+    public void deveriaCriarPessoa() throws CpfFaltandoException, CpfIgualException, NomeFaltandoException, EnderecoNaoEncontradoException {
         PessoaDto pessoaDto = criarPessoaDto1();
         Endereco enderecoPessoaDto = pessoaDto.getEnderecos().get(0);
         EnderecoDto enderecoDto = EnderecoMapper.mapEnderecoParaEnderecoDto(enderecoPessoaDto);
@@ -55,6 +59,7 @@ public class PessoaServiceTest {
         assertEquals(pessoaDto.getCpf(),pessoaCriada.getCpf());
         assertEquals(pessoaDto.getDataNascimento(),pessoaCriada.getDataNascimento());
         assertEquals(pessoaDto.getEnderecos(),pessoaCriada.getEnderecos());
+        assertEquals(pessoaDto.getIdEnderecoPrincipal(),pessoaCriada.getIdEnderecoPrincipal());
 
     }
     @DisplayName("2-Deveria lancar excecao Nome faltando quando criar pessoa sem nome")
@@ -115,14 +120,14 @@ public class PessoaServiceTest {
     @Test
     public void deveriaRetornarEnderecoPrincipalDaPessoa() throws PessoaNaoEncontradaException, EnderecoNaoEncontradoException {
         Pessoa pessoa = criarPessoa1();
-        long idPessoa = Long.parseLong(ID_1);
-        long idEnderecoPrincipal = Long.parseLong(ID_ENDERECO_PRINCIPAL_1);
+        Long idPessoa = Long.parseLong(ID_1);
+        Long idEnderecoPrincipal = Long.parseLong(ID_ENDERECO_PRINCIPAL_1);
 
         EnderecoDto enderecoDto = EnderecoMapper.mapEnderecoParaEnderecoDto(pessoa.getEnderecos().get(0));
 
         doReturn(Optional.of(criarPessoa1())).when(pessoaRepository).findById(idPessoa);
         doReturn(enderecoDto).when(enderecoService).enderecoPrincipal(idEnderecoPrincipal);
-        EnderecoDto enderecoPrincipalDto = pessoaService.retornarEnderecoPrincipal(idPessoa, idEnderecoPrincipal);
+        EnderecoDto enderecoPrincipalDto = pessoaService.retornarEnderecoPrincipal(idPessoa);
 
         assertEquals(enderecoPrincipalDto.getId(),idEnderecoPrincipal);
         assertNotNull(enderecoPrincipalDto);
@@ -136,7 +141,7 @@ public class PessoaServiceTest {
 
         doReturn(Optional.empty()).when(pessoaRepository).findById(idPessoa);
 
-        assertThrows(PessoaNaoEncontradaException.class,()->pessoaService.retornarEnderecoPrincipal(idPessoa,idEnderecoPrincipal));
+        assertThrows(PessoaNaoEncontradaException.class,()->pessoaService.retornarEnderecoPrincipal(idPessoa));
     }
     @DisplayName("9-Deveria mostrar idade")
     @Test
@@ -220,4 +225,20 @@ public class PessoaServiceTest {
 
         assertThrows(CpfFaltandoException.class,()->pessoaService.atualizarPessoa(idPessoa,pessoaDtoSemCpf,idEnderecoASerAtualizado));
     }
+    @DisplayName("15-Deveria retornar pessoa paginada")
+    @Test
+    public void deveriaRetornarPessoaPaginada(){
+        int page = 0;
+        int size = 1;
+        List<Pessoa> listaPessoas = List.of(criarPessoa1());
+        Page<Pessoa> pessoaPage = new PageImpl<>(listaPessoas);
+        Pageable pageable = PageRequest.of(page,size);
+
+        doReturn(pessoaPage).when(pessoaRepository).findAll(pageable);
+        Page<Pessoa> pessoaPaginada = pessoaService.retornarPessoasPaginadas(page, size);
+
+        assertEquals(pessoaPaginada, pessoaPage);
+        assertEquals(pessoaPaginada.getSize(),size);
+    }
+
 }
