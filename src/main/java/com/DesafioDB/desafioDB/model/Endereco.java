@@ -13,7 +13,6 @@ public class Endereco {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
     private String rua;
     private Integer numero;
     private String bairro;
@@ -21,11 +20,12 @@ public class Endereco {
     private String estado;
     private String cep;
 
-    public Endereco(){}
+    public Endereco() {
+    }
 
     public Endereco(Long id, String rua, Integer numero,
-                    String bairro,String cidade,
-                    String estado, String cep){
+                    String bairro, String cidade,
+                    String estado, String cep) {
         this.setId(id);
         this.setRua(rua);
         this.setNumero(numero);
@@ -35,47 +35,59 @@ public class Endereco {
         this.setCep(cep);
     }
 
-    public Long getId(){
+    public Long getId() {
         return id;
     }
 
-    public void setId(Long id){
+    public void setId(Long id) {
         this.id = id;
     }
-    public String getRua (){
+
+    public String getRua() {
         return rua;
     }
-    public void setRua(String rua){
+
+    public void setRua(String rua) {
         this.rua = rua;
     }
-    public Integer getNumero (){
+
+    public Integer getNumero() {
         return numero;
     }
-    public void setNumero(Integer numero){
+
+    public void setNumero(Integer numero) {
         this.numero = numero;
     }
-    public String getBairro (){
+
+    public String getBairro() {
         return bairro;
     }
-    public void setBairro(String bairro){
+
+    public void setBairro(String bairro) {
         this.bairro = bairro;
     }
-    public String getCidade (){
+
+    public String getCidade() {
         return cidade;
     }
-    public void setCidade(String cidade){
+
+    public void setCidade(String cidade) {
         this.cidade = cidade;
     }
-    public String getEstado (){
+
+    public String getEstado() {
         return estado;
     }
-    public void setEstado(String estado){
+
+    public void setEstado(String estado) {
         this.estado = estado;
     }
-    public String getCep(){
+
+    public String getCep() {
         return cep;
     }
-    public void setCep(String cep){
+
+    public void setCep(String cep) {
         this.cep = cep;
     }
 

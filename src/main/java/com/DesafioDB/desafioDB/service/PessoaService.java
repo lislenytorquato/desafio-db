@@ -4,6 +4,7 @@ import com.DesafioDB.desafioDB.dto.EnderecoDto;
 import com.DesafioDB.desafioDB.dto.EnderecoRecebidoDto;
 import com.DesafioDB.desafioDB.dto.PessoaDto;
 import com.DesafioDB.desafioDB.dto.PessoaRecebidaDto;
+import com.DesafioDB.desafioDB.exceptions.*;
 import com.DesafioDB.desafioDB.mapper.EnderecoMapper;
 import com.DesafioDB.desafioDB.mapper.PessoaMapper;
 import com.DesafioDB.desafioDB.model.Endereco;
@@ -23,29 +24,22 @@ public class PessoaService {
     @Autowired
     private EnderecoService enderecoService;
 
-    private PessoaMapper pessoaMapper;
-
-    private EnderecoMapper enderecoMapper;
-
-    public PessoaDto createPessoa(PessoaRecebidaDto pessoaRecebidaDto){
+    public PessoaDto criarPessoa(PessoaRecebidaDto pessoaRecebidaDto) throws NomeFaltandoException, CpfFaltandoException, CpfIgualException {
 
         Pessoa pessoa = new Pessoa();
 
-        if (Objects.isNull(pessoaRecebidaDto.getNome())) {
-            throw new NullPointerException("Nome da pessoa nao encontrado");
-        }
+        lancarExcecaoNomeFaltando(pessoaRecebidaDto.getNome());
         pessoa.setNome(pessoaRecebidaDto.getNome());
 
-        if (Objects.isNull(pessoaRecebidaDto.getCpf())) {
-            throw new NullPointerException("Cpf da pessoa nao encontrado");
-        }
+        lancarExcecaoCpfFaltando(pessoaRecebidaDto.getCpf());
+        lancarExcecaoCpfIgual(pessoaRecebidaDto.getCpf());
         pessoa.setCpf(pessoaRecebidaDto.getCpf());
 
         pessoa.setDataNascimento(pessoaRecebidaDto.getDataNascimento());
 
         List<EnderecoDto> enderecosCriados = new ArrayList<>();
         pessoaRecebidaDto.getEnderecos().forEach(enderecoRecebido -> {
-            enderecosCriados.add(enderecoService.createEndereco(EnderecoMapper.mapEnderecoParaEnderecoRecebidoDto(enderecoRecebido)));
+            enderecosCriados.add(enderecoService.criarEndereco(EnderecoMapper.mapEnderecoParaEnderecoRecebidoDto(enderecoRecebido)));
         });
         pessoa.setEnderecos(EnderecoMapper.mapListaEnderecoDtoParaListaEndereco(enderecosCriados));
 
@@ -53,59 +47,58 @@ public class PessoaService {
 
         Pessoa pessoaSalva = pessoaRepository.save(pessoa);
 
-        return PessoaMapper.mapPessoaParaPessoaDto(pessoaSalva);
+        PessoaDto pessoaDto = PessoaMapper.mapPessoaParaPessoaDto(pessoaSalva);
+
+        return pessoaDto;
     }
 
-    public List<PessoaDto> getPessoas(){
+    public List<PessoaDto> listarPessoas(){
         List<Pessoa> pessoas = pessoaRepository.findAll();
         return PessoaMapper.mapListaDePessoaParaListaDePessoaDto(pessoas);
 
     }
-    public PessoaDto updatePessoa(Long id, PessoaDto pessoaRecebida, Long idEnderecoRecebidoDto){
-        pessoaRecebida.setId(id);
+    public PessoaDto atualizarPessoa(Long idPessoa, PessoaDto pessoaRecebida, Long idEnderecoASeratualizado) throws PessoaNaoEncontradaException, CpfFaltandoException, NomeFaltandoException, EnderecoNaoEncontradoException {
+        pessoaRecebida.setId(idPessoa);
 
-        Optional<Pessoa> pessoaParaAtualizar = pessoaRepository.findById(id);
+        Optional<Pessoa> pessoaParaAtualizar = pessoaRepository.findById(idPessoa);
         lancarExcecaoPessoaNaoEncontrada(pessoaParaAtualizar);
 
-        if (Objects.isNull(pessoaRecebida.getCpf())) {
-            throw new NullPointerException("Cpf da pessoa nao encontrado");
-        }
+        lancarExcecaoCpfFaltando(pessoaRecebida.getCpf());
         pessoaParaAtualizar.get().setCpf(pessoaRecebida.getCpf());
 
-        if (Objects.isNull(pessoaRecebida.getNome())) {
-            throw new NullPointerException("Nome da pessoa nao encontrado");
-        }
+        lancarExcecaoNomeFaltando(pessoaRecebida.getNome());
         pessoaParaAtualizar.get().setNome(pessoaRecebida.getNome());
 
         pessoaParaAtualizar.get().setDataNascimento(pessoaRecebida.getDataNascimento());
 
-        List<Endereco> enderecosAtualizados = atualizarEnderecos(pessoaRecebida, idEnderecoRecebidoDto);
+        List<Endereco> enderecosAtualizados = atualizarEConverterEnderecos(pessoaRecebida, idEnderecoASeratualizado);
+
+        enderecosAtualizados.remove(idEnderecoASeratualizado.intValue()-1);
 
         pessoaParaAtualizar.get().setEnderecos(enderecosAtualizados);
 
-        if (pessoaRecebida.getNome() != null) {
-            pessoaParaAtualizar.get().setIdEnderecoPrincipal(pessoaRecebida.getIdEnderecoPrincipal());
-        }
+        pessoaParaAtualizar.get().setIdEnderecoPrincipal(pessoaRecebida.getIdEnderecoPrincipal());
 
         Pessoa pessoaSalva = pessoaRepository.save(pessoaParaAtualizar.get());
 
-        return PessoaMapper.mapPessoaParaPessoaDto(pessoaSalva);
+        PessoaDto pessoaDto = PessoaMapper.mapPessoaParaPessoaDto(pessoaSalva);
+        return pessoaDto;
 
     }
-    public void deletePessoa(Long id){
-        Optional<Pessoa> pessoaEscolhida = pessoaRepository.findById(id);
-        lancarExcecaoPessoaNaoEncontrada(pessoaEscolhida);
-        pessoaRepository.delete(pessoaEscolhida.get());
+    public void deletarPessoa(Long id) {
+
+        pessoaRepository.deleteById(id);
+        enderecoService.deletarTodosEnderecos();
     }
 
-    public EnderecoDto retornarEnderecoPrincipal(Long idPessoa, Long idEnderecoPrincipal) {
+    public EnderecoDto retornarEnderecoPrincipal(Long idPessoa, Long idEnderecoPrincipal) throws PessoaNaoEncontradaException, EnderecoNaoEncontradoException {
         Optional<Pessoa> pessoa = pessoaRepository.findById(idPessoa);
 
         lancarExcecaoPessoaNaoEncontrada(pessoa);
 
         return enderecoService.enderecoPrincipal(idEnderecoPrincipal);
     }
-    public Integer mostrarIdade(Long id) {
+    public Integer mostrarIdade(Long id) throws PessoaNaoEncontradaException {
 
         Optional<Pessoa> pessoa = pessoaRepository.findById(id);
 
@@ -126,20 +119,37 @@ public class PessoaService {
         return Integer.valueOf(anoAtual - anoNascimento);
 
     }
-    private List<Endereco> atualizarEnderecos(PessoaDto pessoaRecebida, Long idEnderecoRecebidoDto){
+    private List<Endereco> atualizarEConverterEnderecos(PessoaDto pessoaRecebida, Long idEnderecoASerAtualizado) throws EnderecoNaoEncontradoException {
 
         List<EnderecoDto> enderecoDtoLista = new ArrayList<>();
-        Endereco enderecoAtualizado = pessoaRecebida.getEnderecos().get(idEnderecoRecebidoDto.intValue()-1);
+        Endereco enderecoAtualizado = pessoaRecebida.getEnderecos().get(idEnderecoASerAtualizado.intValue()-1);
         EnderecoRecebidoDto enderecoRecebidoDto = EnderecoMapper.mapEnderecoParaEnderecoRecebidoDto(enderecoAtualizado);
-        List<EnderecoDto> listaDeEnderecoDto = enderecoService.updateEndereco(idEnderecoRecebidoDto, enderecoRecebidoDto);
+        List<EnderecoDto> listaDeEnderecoDto = enderecoService.atualizarEndereco(enderecoRecebidoDto);
 
         List<Endereco> enderecos = EnderecoMapper.mapListaEnderecoDtoParaListaEndereco(listaDeEnderecoDto);
 
         return enderecos;
     }
-    private void lancarExcecaoPessoaNaoEncontrada(Optional<Pessoa> pessoa){
-        if (pessoa.isEmpty()){
-            throw new NullPointerException("pessoa nao encontrada");
+    private void lancarExcecaoPessoaNaoEncontrada(Optional<Pessoa> pessoa) throws PessoaNaoEncontradaException {
+
+        if (pessoa.isEmpty()) {
+            throw new PessoaNaoEncontradaException();
+        }
+    }
+    private void lancarExcecaoCpfFaltando(Long cpf) throws CpfFaltandoException {
+        if (Objects.isNull(cpf)) {
+            throw new CpfFaltandoException();
+        }
+    }
+    private void lancarExcecaoNomeFaltando(String nome) throws NomeFaltandoException {
+        if (nome.isEmpty()) {
+            throw new NomeFaltandoException();
+        }
+    }
+    private void lancarExcecaoCpfIgual(Long cpf) throws CpfIgualException {
+        Optional<Pessoa> pessoa = pessoaRepository.findByCpf(cpf);
+        if (pessoa.isPresent()){
+            throw new CpfIgualException();
         }
     }
 }

@@ -2,7 +2,6 @@ package com.DesafioDB.desafioDB.dto;
 
 public class EnderecoRecebidoDto {
 
-
     private String rua;
 
     private Integer numero;
@@ -62,4 +61,5 @@ public class EnderecoRecebidoDto {
     public void setCep(String cep) {
         this.cep = cep;
     }
+
 }
